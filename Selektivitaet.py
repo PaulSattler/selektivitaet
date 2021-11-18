@@ -40,7 +40,7 @@ plt.plot(xDLinks, yDLinksSmoother)
 plt.plot(xDRechts, yDRechtsSmoother)
 plt.plot(xThermik, yThermikSmoother)
 
-#Test
+#Testt
 
 plt.xlabel('I in Ampere')
 plt.ylabel('T in s')
