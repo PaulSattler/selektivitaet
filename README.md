@@ -1,1 +1,1 @@
-# selektivitaet
+# selektivität
