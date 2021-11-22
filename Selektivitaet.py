@@ -6,21 +6,20 @@ import numpy as np
 import math 
 from scipy.ndimage.filters import gaussian_filter1d
 import csv
+import tkinter
 
-
-Sigma = 1
-
+#Wandelt jeden a in einen float(a) um und mutlipliziert mit x
 def toFloatTimesX(a, x):
     r = []
     for w in a:
         r.append(float(w)*int(x))
     return r
-
+#Ersetzt alle , in einen .
 def Replace(str1):
     maketrans = str1.maketrans
     final = str1.translate(maketrans(',.', '.,', ' '))
     return final.replace(',', ", ")
-
+#kann eine txt oder csv datei einlesen, format x;y \n x;y \n ...
 def ReadDataSheet(file):
     x = []
     y = []
@@ -61,6 +60,11 @@ xR, yR = ReadDataSheet("CSV00001_B_Rechts.txt")
 Automat("B", 16, "Erster Automat", xL, xR, yL, yR)
 xT, yT = ReadDataSheet("Thermik.txt")
 Thermik(16, "Thermik 1", xT, yT)
+
+#tkinter
+
+
+
 
 
 
