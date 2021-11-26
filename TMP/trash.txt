@@ -91,3 +91,28 @@ def DAutomat(AutomatenTyp):
 Thermik(16)
 
 SOCOM_22_58_gG_63A_690V()
+
+
+
+
+
+
+
+
+
+
+
+
+
+buttonminusstack[line-1].grid(row=((line-1)*3)+2, column=2, sticky=tk.E)
+    buttonplusstack[line-1].grid(row=((line-1)*3)+2, column=3)
+    dropdownstack[len(dropdownstack)-1].grid(row=((line-1)*3)+1, column=0)
+    labelstack[len(labelstack)-1].grid(row=(line-1)*3, column=0)
+    fileinputstack[0][len(fileinputstack[0])-1].grid(row=(line-1)*3, column=1)
+    fileinputstack[1][len(fileinputstack[1])-1].grid(row=((line-1)*3)+1, column=1)
+    nameinputstack[0][len(nameinputstack[0])-1].grid(row=(line-1)*3, column=2)
+    nameinputstack[1][len(nameinputstack[1])-1].grid(row=((line-1)*3)+1, column=2)
+    ininputstack[0][len(ininputstack[0])-1].grid(row=(line-1)*3, column=3)
+    ininputstack[0][len(ininputstack[0])-1].insert(0, "I/A")
+    ininputstack[1][len(ininputstack[1])-1].grid(row=((line-1)*3)+1, column=3)
+    ininputstack[1][len(ininputstack[1])-1].insert(0, "I/A")

@@ -1,18 +1,25 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import math 
+import csv
+import tkinter
 import tkinter as tk
 import tkinter.ttk as ttk
+
 from tkinter import filedialog as fd
 from array import array
-import os
+from os import X_OK
+from numpy import Infinity
+#from scipy.ndimage.filters import gaussian_filter1d
 
-#root = Hauptfenster
+
 root = tk.Tk()
-root.geometry('550x800')
+root.iconphoto(False, tk.PhotoImage(file='icon.ico'))
+root.title("Selektivität")
+root.geometry('1200x800')
 
-OptionList = [
-"Leitungsschutzschalter",
-"Schmelzsicherung",
-"Funktion"
-] 
+OptionList = ["Leitungsschutzschalter","Schmelzsicherung","Funktion"] 
 
 labelstack = []
 dropdownstack = []
@@ -35,58 +42,110 @@ konstantstacky = []
 konstantstackf = []
 
 
-    
+##PLT
+
+#Wandelt jeden a in einen float(a) um und mutlipliziert mit x
+def toFloatTimesX(a, x):
+    r = []
+    for w in a:
+        r.append(float(w)*int(x))
+    return r
+#Ersetzt alle , in einen .
+def Replace(str1):
+    maketrans = str1.maketrans
+    final = str1.translate(maketrans(',.', '.,', ' '))
+    return final.replace(',', ", ")
+#kann eine txt oder csv datei einlesen, format x;y \n x;y \n ...
+def ReadDataSheet(file):
+    x = []
+    y = []
+    with open(file, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';', quotechar='\\')
+        for row in reader:
+            x.append(Replace(row[0]))
+            y.append(Replace(row[1]))
+        return x, y
+
+def Schmelzsicherungplot(Karakteristik, In, Name, x_in, y_in):
+    x = toFloatTimesX(x_in, 1)
+    y = toFloatTimesX(y_in, 1)
+    labelL = Name
+    plt.plot(x, y, label = labelL)
+
+def Automatplot(Karakteristik, In, Name1, Name2, xL_in, xR_in, yL_in, yR_in):
+    xL = toFloatTimesX(xL_in, In)
+    xR = toFloatTimesX(xR_in, In)
+    yL = toFloatTimesX(yL_in, 1)
+    yR = toFloatTimesX(yR_in, 1)
+    labelL = str(Name1) + "  mit " + str(In) + "A, Min"
+    labelR = str(Name2) + "  mit "  + str(In) + "A, Max"
+    plt.plot(xL, yL, label = labelL)
+    plt.plot(xR, yR, label = labelR)
+
+def functionplot(Name, f):
+    x = np.linspace(0, 10000, 10000)
+    y = exec(f)
+    #exec
+    plt.plot(x, y, label = str(Name))
+
+
+def showIt():
+    plt.xlabel('I in Ampere')
+    plt.ylabel('T in s')
+    plt.title("Selektivität",fontsize=16)
+    plt.semilogx(2) #loglog
+    plt.semilogy(2) #loglog
+    plt.grid(True, 'both', 'both') #grid für loglog mit (Visible, which, axis)
+    plt.legend(loc='upper right')
+    plt.show()
+
+
+
+##TKINTER
 
 def doit_button_pressed():
-
     #Finde, welche aktiv sind
     for dropdown in dropdownstack:
         if dropdown.winfo_ismapped() == True:
             x = dropdownstack.index(dropdown)
             if variablestack[x].get() == "Leitungsschutzschalter":
-                print("Leitungsschutzschalter")
-                file0 = fileinputstack[0][x]
-                file1 = fileinputstack[1][x]
-                name0 = nameinputstack[0][x]
-                name1 = nameinputstack[1][x]
-                in0 = ininputstack[0][x]
-                in1 = ininputstack[1][x]
-
-                #Automat
+                file0 = fileinputstack[0][x].cget("text")
+                file1 = fileinputstack[1][x].cget("text")
+                name0 = nameinputstack[0][x].get()
+                name1 = nameinputstack[1][x].get()
+                in0 = ininputstack[0][x].get()
+                in1 = ininputstack[1][x].get()
+                xL, yL = ReadDataSheet(file0)
+                xR, yR = ReadDataSheet(file1)
+                Automatplot("Karaktaristik", in0, name0, name1, xL, xR, yL, yR)
             elif variablestack[x].get() == "Schmelzsicherung":
-                print("Schmelzsicherung")
-                file = schmelzsicherungstack[x]
-                name = schmelzsicherungnamestack[x]
-
+                file = schmelzsicherungstack[x].cget("text")
+                xL, yL = ReadDataSheet(file)
+                name = schmelzsicherungnamestack[x].get()
+                Schmelzsicherungplot("", 1, name, xL, yL)
                 #schmelzsicherung
             elif variablestack[x].get() == "Funktion":
-                print("Funktion")
-                x1 = konstantstackx[x]
-                y1 =konstantstacky[x]
-                f1 = konstantstackf[x]
+                x1 = konstantstackx[x].get()
+                y1 =konstantstacky[x].get()
+                f1 = konstantstackf[x].get()
+                if f1 != "":
+                    functionplot(str(f1), str(f1))
 
+    showIt()
 
 def getFilepath(a, b):
     filename = fd.askopenfilename()
     if len(filename)<2:
         filename = "Hier ist etwas schief gelaufen.."
     fileinputstack[a][b].config(text=filename)
-    #return filename
 
 def getFilepathSchmelz(a):
     filename = fd.askopenfilename()
     if len(filename)<2:
         filename = "Hier ist etwas schief gelaufen.."
     schmelzsicherungstack[a].config(text=filename)
-    #return filename
-
-
-
-
 
 def destroyLinePart(line):
-    #line = line + 1
-    #print(line)
     fileinputstack[0][line-1].grid_remove()
     fileinputstack[1][line-1].grid_remove()
     nameinputstack[0][line-1].grid_remove()
@@ -100,14 +159,11 @@ def destroyLinePart(line):
     konstantstackf[line-1].grid_remove()
 
 def Schmelzsicherung(line):
-    #print("Schmelzsicherung Line: {}".format(line))
     destroyLinePart(line)
-    #print(schmelzsicherungnamestack)
     schmelzsicherungnamestack[line-1].grid(row=((line-1)*3)+1, column=2)
     schmelzsicherungstack[line-1].grid(row=((line-1)*3), column=1)
 
 def Konstante(line, change):
-    #print("Konstante Line: {}".format(line))
     destroyLinePart(line)
     konstantstackx[line-1].grid(row=((line-1)*3), column=1)
     konstantstacky[line-1].grid(row=((line-1)*3)+1, column=1)
@@ -116,8 +172,6 @@ def Konstante(line, change):
         konstantstackx[line-1].insert(0, "X")
         konstantstacky[line-1].insert(0, "Y")
         konstantstackf[line-1].insert(0, "Function")
-        #print(str(konstantstackx[line-1][0]))
-    
 
 def newFileinputSchmelzsicherung(n):
     n = int(n)
@@ -150,7 +204,6 @@ def newDropdown(line):
     variablestack.append(tk.StringVar(root))
     variablestack[line-1].set(OptionList[0])
     opt = tk.OptionMenu(root, variablestack[line-1], *OptionList)
-    #opt.config(width=90, font=('Helvetica', 12))
     dropdownstack.append(opt)
     variablestack[line-1].trace("w", dropdownchanged)
 
@@ -176,11 +229,9 @@ def newIN():
     ininputstack[1].append(myInput1)
 
 def plusbutton_pressed():
-    #print(labelstack)
     addNewLine(len(labelstack))
 
 def minusbutton_pressed(line):
-    #todo ungrid all in line
     if line > 1:
         labelstack[line-1].grid_remove()
         dropdownstack[line-1].grid_remove()
@@ -198,30 +249,20 @@ def minusbutton_pressed(line):
         konstantstacky[line-1].grid_remove()
         konstantstackf[line-1].grid_remove()
 
-
-    #print(str(line))
-    #print("labelstack"+str(labelstack),    "dropdownstack"+str(dropdownstack),    "fileinputstack"+str(fileinputstack),    "nameinputstack"+str(nameinputstack),    "ininputstack"+str(ininputstack),    "buttonplusstack"+str(buttonplusstack),    "buttonminusstack"+str(buttonminusstack))
-    return
-
 def makenewform(masterrow, function):
     if function == "Schmelzsicherung":
         Schmelzsicherung(masterrow)
     elif function == "Leitungsschutzschalter":
-        Sicherungsautomat(masterrow, True)           ###############################
+        Sicherungsautomat(masterrow, True)
     elif function == "Funktion":
         Konstante(masterrow, True)
-    #print(masterrow, function)
-    return
 
 def dropdownchanged(*args):
-    #print("X {}".format(args))
     row = 0
     if len(args[0])==7: row = int(args[0][len(args[0]) - 1]) 
     else: row = int(str(args[0][len(args[0])-2]) +  str(args[0][len(args[0]) - 1]))
-    #labelstack[row].destroy()
-    #print(variablestack[row].get())
+    print(row)
     makenewform(row+1, variablestack[row].get())
-    return
 
 def newPlusbutton():
     mybutton = tk.Button(root, width=5, height=2, text="+", command=lambda: plusbutton_pressed())
@@ -235,7 +276,7 @@ def addNewLine(line):
     line = line + 1
     newLabel("Sicherung " + str(line) + ":")
     newDropdown(line)   
-    newFileinput(line-1)       # line-1 OR 0 #######################################################################################################
+    newFileinput(line-1)
     newName()
     newIN()
     newPlusbutton()
@@ -253,8 +294,7 @@ def addNewLine(line):
 def Sicherungsautomat(line, change):
     if change == True:
         destroyLinePart(line)
-    #print("Sicherungsautomat Line: {}".format(line))
-    linerow = line #################################################
+    linerow = line
     labelstack[line-1].grid(row=(linerow-1)*3, column=0)
     fileinputstack[0][line-1].grid(row=(linerow-1)*3, column=1)
     fileinputstack[1][line-1].grid(row=((linerow-1)*3)+1, column=1)
@@ -265,13 +305,6 @@ def Sicherungsautomat(line, change):
     if change == False:
         ininputstack[0][line-1].insert(0, "I/A")
         ininputstack[1][line-1].insert(0, "I/A")
-
-    return
-
-    
-
-
-
 
 
 
