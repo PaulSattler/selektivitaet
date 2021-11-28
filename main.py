@@ -261,7 +261,7 @@ def dropdownchanged(*args):
     row = 0
     if len(args[0])==7: row = int(args[0][len(args[0]) - 1]) 
     else: row = int(str(args[0][len(args[0])-2]) +  str(args[0][len(args[0]) - 1]))
-    print(row)
+    #print(row)
     makenewform(row+1, variablestack[row].get())
 
 def newPlusbutton():
