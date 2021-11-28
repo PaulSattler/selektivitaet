@@ -15,7 +15,7 @@ from numpy import Infinity
 
 
 root = tk.Tk()
-root.iconphoto(False, tk.PhotoImage(file='icon.ico'))
+root.iconphoto(False, tk.PhotoImage(file='TMP\icon.ico'))
 root.title("Selektivität")
 root.geometry('1200x800')
 
