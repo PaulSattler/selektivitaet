@@ -3,15 +3,57 @@ import numpy as np
 import csv
 import tkinter as tk
 import random
-
+import math
+import os
 from tkinter import filedialog as fd
 from tkinter import ttk
 from os import X_OK
 from numpy import Infinity
 
-globalfilename = "C:/Users/PSA/Desktop/selektivitaet/DATA/".strip()
+#Global Variables
+globalfilename = "C:/Users/PSA/Desktop/selektivitaet/DATA/LS".strip()
 globalprojectname = "F22808"
+#Erstellung der GUI
+root = tk.Tk()
+root.iconphoto(False, tk.PhotoImage(file='TMP\icon.ico'))
+root.title("Selektivität")
+root.geometry('')
+#Auswahl an Funktionen
+OptionList = ["Leitungsschutzschalter","Schmelzsicherung","Funktion"] 
+#Auswahl an LS
+#OptionListLS = ["B-Char","C-Char","D-Char","Z-Char","K-Char"] 
+OptionListLS = [] 
+#Globaler speicher für Row's
+rowstack = []
 
+
+def readLS(path):
+    files = os.listdir(path)
+    while files != [] and len(files) > 1:
+        if (str(files[0])[:-6] == str(files[1])[:-6]) and (str(files[0])[-4:] == '.txt'):
+            OptionListLS.append(str(files[0])[:-6])
+            files.pop(0)
+            files.pop(0)
+            pass
+        else:
+            print("Fehler im Dateiverzeichniss")
+            files.pop(0)
+        pass
+
+
+
+def colorgetter():
+    r = lambda: random.randint(0,255)
+    g = lambda: random.randint(0,255)
+    b = lambda: random.randint(0,255)
+    color = ('#%02X%02X%02X' % (r(),g(),b()))
+    return color 
+    #auf schöne farben begrenzen
+
+
+def config_button_pressed():
+    pass
+    #TODO 
 def showIt():
     global globalprojectname
     plt.xlabel('I in Ampere')
@@ -48,29 +90,25 @@ def ReadDataSheet(file):
     #liest csv ein
 def drawLS(type, In, Name, thermik):
     global globalfilename
-    xl, yl = ReadDataSheet(globalfilename+str(type)+"_L.txt")
-    xr, yr = ReadDataSheet(globalfilename+str(type)+"_R.txt")
+    xl, yl = ReadDataSheet(globalfilename+"/"+str(type)+"_L.txt")
+    xr, yr = ReadDataSheet(globalfilename+"/"+str(type)+"_R.txt")
     xl = toFloatTimesX(xl, In)
     yl = toFloatTimesX(yl, 1)
     xr = toFloatTimesX(xr, In)
     yr = toFloatTimesX(yr, 1)
     label = str(Name) + "|"+str(type) + " " + str(In) + "A"
-    r = lambda: random.randint(0,255)
-    g = lambda: random.randint(0,255)
-    b = lambda: random.randint(0,255)
-    color = ('#%02X%02X%02X' % (r(),r(),r()))
-    #color = "#"+''.join([random.choice('3456789ABC') for j in range(6)])
+    color = colorgetter()
     plt.plot(xl, yl,color=color, label = label)
     plt.plot(xr, yr, color=color)
     if thermik == 1:
-        thermikx, thermiky = ReadDataSheet(globalfilename+"Thermik.txt")
+        thermikx, thermiky = ReadDataSheet(globalfilename[:-2]+"Thermik.txt")
         thermikx = toFloatTimesX(thermikx, In)
         thermiky = toFloatTimesX(thermiky, 1)
         plt.plot(thermikx, thermiky, color=color)
     #OK
 def drawS(path, Name):
     x, y = ReadDataSheet(path)
-    color = "#"+''.join([random.choice('3456789ABCD') for j in range(6)])
+    color = colorgetter()
     x = toFloatTimesX(x, 1)
     y = toFloatTimesX(y, 1)
     label = Name
@@ -78,7 +116,23 @@ def drawS(path, Name):
     #OK
 
 def drawf(f, name):
-    pass
+    print(f)
+    ff = '''
+xlist = range(0, 100, 1)
+ylist = []
+for x in xlist:
+    ylist.append(''' + str(f) + ''')    
+
+    '''
+    loc = {}
+    exec(ff,globals(), loc)
+    x = loc['xlist']
+    y = loc['ylist']
+    color = colorgetter()
+    x = toFloatTimesX(x, 1)
+    y = toFloatTimesX(y, 1)
+    label = name
+    plt.plot(x, y,color = color, label = label)
     #work
 
 def doit_button_pressed(*args):
@@ -177,24 +231,9 @@ def dropdownchanged(*args):
             return
     if not erfolg:
         dropdownchanged("PY_VAR"+str(int(str(args[0])[6:])-1),args[1],args[2])
-        #print("nochmal versuchen")
         pass 
     #OK
 
-
-
-#Erstellung der GUI
-root = tk.Tk()
-root.iconphoto(False, tk.PhotoImage(file='TMP\icon.ico'))
-root.title("Selektivität")
-root.geometry('')
-
-#Auswahl an Funktionen
-OptionList = ["Leitungsschutzschalter","Schmelzsicherung","Funktion"] 
-#Auswahl an LS
-OptionListLS = ["B-Char","C-Char","D-Char","Z-Char","K-Char"] 
-#Globaler speicher für Row's
-rowstack = []
 
 class Row:
     def __init__(self, label, dropdown, ddinner, fileinput, nameinput, ininput, x, y, f, buttonminus, row, dropdownLS, ddLSinner, thermikcheckbox, checkboxvar):
@@ -377,13 +416,17 @@ def addNewLine(line):
     print(r.dropdown)
     #OK
 
-plusbutton = tk.Button(root, width=5, height=2, text="+", command=lambda: plusbutton_pressed()).grid(row=999, column=1, sticky=tk.E)
-questionbutton = tk.Button(root, width=5, height=2, text="?", command=lambda: question_button_pressed()).grid(row=999, column=0, sticky=tk.E)
+
+
 
 #INIT
+plusbutton = tk.Button(root, width=5, height=2, text="+", command=lambda: plusbutton_pressed()).grid(row=999, column=3, sticky=tk.E)
+questionbutton = tk.Button(root, width=5, height=2, text="?", command=lambda: question_button_pressed()).grid(row=999, column=0, sticky=tk.E)
+questiconfigbutton = tk.Button(root, width=5, height=2, text="⚙", command=lambda: config_button_pressed()).grid(row=999, column=1, sticky=tk.E)
+mybutton = tk.Button(root, width=5, height=2, text="Erstellen", command=lambda: doit_button_pressed()).grid(row=999, column=4,  sticky=tk.E)
+readLS(globalfilename)
 addNewLine(0)
-mybutton = tk.Button(root, width=5, height=2, text="Erstellen", command=lambda: doit_button_pressed()).grid(row=999, column=2,  sticky=tk.E)
+
+
 #MAINLOOP
-
-
 root.mainloop()
