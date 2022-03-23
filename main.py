@@ -28,19 +28,19 @@ rowstack = []
 
 
 def readLS(path):
-    files = os.listdir(path)
-    while files != [] and len(files) > 1:
-        if (str(files[0])[:-6] == str(files[1])[:-6]) and (str(files[0])[-4:] == '.txt'):
-            OptionListLS.append(str(files[0])[:-6])
-            files.pop(0)
-            files.pop(0)
-            pass
-        else:
-            print("Fehler im Dateiverzeichniss")
-            files.pop(0)
-        pass
-
-
+    try:
+        files = os.listdir(path)
+        while files != []:
+            for file in files:
+                files.remove(file)
+                for checkfile in files:
+                    if (str(file)[:-6] == str(checkfile)[:-6]) and (str(file)[-4:] == '.txt') and (str(checkfile)[-4:] == '.txt'):
+                        OptionListLS.append(str(file)[:-6])
+                        files.remove(checkfile)
+        OptionListLS.sort()
+    except Exception:
+        print("Fehler in Dateieinlesefunktion")
+        print(Exception)
 
 def colorgetter():
     r = lambda: random.randint(0,255)
@@ -116,7 +116,7 @@ def drawS(path, Name):
     #OK
 
 def drawf(f, name):
-    print(f)
+    #print(f)
     ff = '''
 xlist = range(0, 100, 1)
 ylist = []
