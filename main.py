@@ -11,23 +11,27 @@ from os import X_OK
 from numpy import Infinity
 
 #Global Variables
-globalfilename = "C:/Users/PSA/Desktop/selektivitaet/DATA/LS".strip()
-globalprojectname = "F22808"
+globalfilename = "".strip()
+globalprojectname = "Sicherungen"
 #Erstellung der GUI
 root = tk.Tk()
 root.iconphoto(False, tk.PhotoImage(file='TMP\icon.ico'))
 root.title("Selektivität")
 root.geometry('')
+
+
 #Auswahl an Funktionen
 OptionList = ["Leitungsschutzschalter","Schmelzsicherung","Funktion"] 
 #Auswahl an LS
 #OptionListLS = ["B-Char","C-Char","D-Char","Z-Char","K-Char"] 
-OptionListLS = [] 
+OptionListLS = ["---"] 
 #Globaler speicher für Row's
 rowstack = []
 
 
-def readLS(path):
+def readLS():
+    global globalfilename
+    path = globalfilename
     try:
         files = os.listdir(path)
         while files != []:
@@ -37,6 +41,7 @@ def readLS(path):
                     if (str(file)[:-6] == str(checkfile)[:-6]) and (str(file)[-4:] == '.txt') and (str(checkfile)[-4:] == '.txt'):
                         OptionListLS.append(str(file)[:-6])
                         files.remove(checkfile)
+        OptionListLS.remove("---")
         OptionListLS.sort()
     except Exception:
         print("Fehler in Dateieinlesefunktion")
@@ -50,8 +55,42 @@ def colorgetter():
     return color 
     #auf schöne farben begrenzen
 
+def getDir():
+    global globalfilename
+    filename = fd.askdirectory()
+    if len(filename)<2:
+        filename = "Hier ist etwas schief gelaufen.."
+    else:
+        globalfilename = filename.strip()
+        print(filename)
+        readLS()
 
+def setProjectName(name):
+    global globalprojectname
+    globalprojectname = name.strip()
+    pass
+
+def configOK(*args):
+    setProjectName(args.get(args[0]))
+    pass
 def config_button_pressed():
+    config = tk.Toplevel(root)
+    config.iconphoto(False, tk.PhotoImage(file='TMP\icon.ico'))
+    config.title("Einstellungen")
+    config.geometry('600x600')
+    configtext = tk.Label(config, text="Hier kann man sachen einstellen.").grid(row=0, column=1)
+    configLSDirtext = tk.Label(config, text="Wo liegen die LS-Kennlienien").grid(row=1, column=0)
+    configLSDir = tk.Button(config, width=5, height=2, text="Dir", command=lambda: getDir() ).grid(row=1, column=1)
+
+    configProjectNametext = tk.Label(config, text="Projektnummer: ").grid(row=2, column=0)
+    configProjectName = tk.Entry(config, width=40).grid(row=2, column=1)
+
+    ok = tk.Button(config, width=5, height=2, text="OK", command=lambda: configOK(configProjectName.get(), "") ).grid(row=99, column=1)
+
+
+    
+
+
     pass
     #TODO 
 def showIt():
@@ -101,10 +140,15 @@ def drawLS(type, In, Name, thermik):
     plt.plot(xl, yl,color=color, label = label)
     plt.plot(xr, yr, color=color)
     if thermik == 1:
-        thermikx, thermiky = ReadDataSheet(globalfilename[:-2]+"Thermik.txt")
-        thermikx = toFloatTimesX(thermikx, In)
-        thermiky = toFloatTimesX(thermiky, 1)
-        plt.plot(thermikx, thermiky, color=color)
+        try:
+            thermikx, thermiky = ReadDataSheet(globalfilename+"/"+str(type)+"_T.txt")
+            thermikx = toFloatTimesX(thermikx, In)
+            thermiky = toFloatTimesX(thermiky, 1)
+            plt.plot(thermikx, thermiky, color=color)
+        except Exception:
+            print("Die Sicherung: " + str(type) + " hat keine abgelegten daten für THERMIK")
+            print(Exception)
+            pass
     #OK
 def drawS(path, Name):
     x, y = ReadDataSheet(path)
@@ -184,8 +228,8 @@ def plusbutton_pressed(*args):
     addNewLine(first_free_place)
     #OK                           #print("Neue Sicherung erstellt. Nr:" + str(x))
 def minusbutton_pressed(*args):
-    if str(args[0]) == "0":
-        return 
+    #if str(args[0]) == "0":
+    #    return 
     for r in rowstack:
         if (str(r.label)[-2:].strip() == str(args[0])):
             r.delRow()
@@ -424,7 +468,8 @@ plusbutton = tk.Button(root, width=5, height=2, text="+", command=lambda: plusbu
 questionbutton = tk.Button(root, width=5, height=2, text="?", command=lambda: question_button_pressed()).grid(row=999, column=0, sticky=tk.E)
 questiconfigbutton = tk.Button(root, width=5, height=2, text="⚙", command=lambda: config_button_pressed()).grid(row=999, column=1, sticky=tk.E)
 mybutton = tk.Button(root, width=5, height=2, text="Erstellen", command=lambda: doit_button_pressed()).grid(row=999, column=4,  sticky=tk.E)
-readLS(globalfilename)
+
+config_button_pressed()
 addNewLine(0)
 
 
